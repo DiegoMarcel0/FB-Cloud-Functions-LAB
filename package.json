@@ -1,0 +1,15 @@
+{
+  "name": "fb-cloud-functions-lab",
+  "version": "1.0.0",
+  "description": "Pruebas de desarrollo de funciones en la nube de Firebase",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "firebase-tools": "^13.30.0"
+  }
+}

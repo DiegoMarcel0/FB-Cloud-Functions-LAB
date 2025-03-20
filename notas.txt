@@ -1,0 +1,47 @@
+Encender esta chingadera...
+
+Usas esto en la carpeta principal
+
+firebase emulators:start
+
+
+Pendientes
+🔹 Base de Datos: Usa reglas de seguridad y evita datos públicos.
+    ✅ Usar reglas de seguridad estrictas en firestore.rules
+Ejemplo:
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /empleados/{docId} {
+      allow read, write: if request.auth != null && request.auth.token.admin == true;
+    }
+  }
+}
+-------Firebase App Check
+🔹 Solo los administradores autenticados pueden acceder.
+
+    ✅ Evitar acceso público: No uses allow read, write: if true; en producción.
+
+    ✅ Cifrar datos sensibles antes de guardarlos (ejemplo: números de tarjetas, contraseñas).
+
+🔹 APIs REST: Usa tokens de autenticación y valida cada petición.
+    ✅ Autenticación y Autorización con Firebase Authentication o OAuth 2.0.
+    ✅ Validar siempre los datos en la API antes de guardarlos.
+    ✅ Evitar exponer información en URLs, usa tokens en los headers.
+    ✅ Control de acceso: No permitir que cualquier usuario pueda leer o modificar datos sensibles.
+
+
+Para que se actualice auto, ejecutar:
+
+ npm run build:watch
+
+Para que corra el simulador, en otra consola:
+
+
+
+
+npm run serve 
+
+
+npm firebase emulators:start --only firestore
+

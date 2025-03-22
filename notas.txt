@@ -1,8 +1,29 @@
 Encender esta chingadera...
 
-Usas esto en la carpeta principal
+Ejecutar desde la carpeta principal
 
 firebase emulators:start
+
+Si modificas/añades/eliminas funciones usas esto en otra cmd:
+(Creo que solo lo pones y ya te actualiza otros cambios)
+
+npm run build:watch
+
+
+Esto construye y ejecuta el simulador(Solo Functions, No Firestore ni nada mas)
+npm run serve 
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 Pendientes
@@ -31,17 +52,10 @@ service cloud.firestore {
     ✅ Control de acceso: No permitir que cualquier usuario pueda leer o modificar datos sensibles.
 
 
-Para que se actualice auto, ejecutar:
-
- npm run build:watch
-
-Para que corra el simulador, en otra consola:
 
 
 
+Para iniciar solo firestore, imagino que le puedes añadir mas cosas
 
-npm run serve 
-
-
-npm firebase emulators:start --only firestore
+firebase emulators:start --only firestore
 

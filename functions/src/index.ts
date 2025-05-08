@@ -13,10 +13,6 @@ import { FieldValue } from "firebase-admin/firestore";
 admin.initializeApp();
 const db = admin.firestore();
 
-
-
-
-
 export const reads = functions.https.onRequest(async (req, res): Promise<any> => {
     //METODO GET
     if (req.method === "GET") {

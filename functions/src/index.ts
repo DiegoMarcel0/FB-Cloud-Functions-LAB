@@ -15,6 +15,7 @@ const db = admin.firestore();
 
 export const reads = functions.https.onRequest(async (req, res): Promise<any> => {
     //METODO GET
+    //para enviar todas las lecturas de targetas
     if (req.method === "GET") {
         //return res.status(405).send("Método no permitido");
         try {
@@ -41,6 +42,7 @@ export const reads = functions.https.onRequest(async (req, res): Promise<any> =>
         }
     }
     //METODO POST
+    //para registrar nuevos tags
     if (req.method !== "POST") {
         return res.status(405).send("Método no permitido");
     }
@@ -88,6 +90,8 @@ export const reads = functions.https.onRequest(async (req, res): Promise<any> =>
 
 export const tags = functions.https.onRequest(async (req, res):Promise<any> => {
     //METODO GET
+    //Devolvera en json datos de las RFID: 
+    // //id de dcoumento, Id de usuario, approved, new, tagID
     if (req.method === "GET") {
         //return res.status(405).send("Método no permitido");
         let tags = [];
@@ -109,6 +113,8 @@ export const tags = functions.https.onRequest(async (req, res):Promise<any> => {
         }
     }
     //METODO PUT
+    //Para cambar approve a TRUE
+    //Se necesita la forma ".../tagas/:id/approve"
     if (req.method !== "PUT") {
         return res.status(405).send("Método no permitido");
     }

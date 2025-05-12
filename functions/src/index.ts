@@ -9,134 +9,108 @@
 
 import * as admin from "firebase-admin";
 import * as functions from "firebase-functions";
-import { FieldValue } from "firebase-admin/firestore";
+import { authMiddleware } from "./Seguridad/authMiddleware";
+import { validateInput } from "./Seguridad/validateInput";
+
+import { Request, Response, NextFunction } from "express";
+
+// Middleware para verificar roles específicos
+const checkAdminRole = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    if (!req.user || req.user.role !== "admin") {
+        res.status(403).json({ error: "Acceso denegado. Se requiere rol de administrador." });
+        return;
+    }
+    next();
+};
+
 admin.initializeApp();
 const db = admin.firestore();
 
+// Endpoint para manejar operaciones relacionadas con lecturas de RFID
 export const reads = functions.https.onRequest(async (req, res): Promise<any> => {
-    //METODO GET
-    //para enviar todas las lecturas de targetas
-    if (req.method === "GET") {
-        //return res.status(405).send("Método no permitido");
-        try {
-            //get method
-            
-            const snapshot = await db.collection("RFIDTag").get();
-            let tags = [];
-
-            for (const doc of snapshot.docs) {
-                const readSnapshot = await doc.ref.collection("Read").get();
-                for (const docu of readSnapshot.docs) {
-                    tags.push({
-                        id: doc.id,
-                        userId: doc.data().userId,
-                        tagId: doc.data().tagId,
-                        createdAt: docu.data().createdAt,
-                    });
+    // Middleware para autenticar al usuario
+    await authMiddleware(req, res, async () => {
+        // Middleware para verificar si el usuario tiene rol de administrador
+        await checkAdminRole(req, res, async () => {
+            // Manejo de solicitudes GET para obtener datos de RFID
+            if (req.method === "GET") {
+                try {
+                    const snapshot = await db.collection("RFIDTag").get();
+                    res.status(200).json(snapshot.docs.map(doc => doc.data()));
+                } catch (error) {
+                    console.error("Error obteniendo datos:", error);
+                    res.status(500).send("Error interno del servidor.");
                 }
+                return;
             }
-            return res.status(200).json(tags);
-        } catch (error) {
-            console.error("Error obteniendo lecturas:", error);
-            return res.status(500).json({ error: "Error interno del servidor" });
-        }
-    }
-    //METODO POST
-    //para registrar nuevos tags
-    if (req.method !== "POST") {
-        return res.status(405).send("Método no permitido");
-    }
-    try { 
-        // Validar metodo POST
-        
-        const { tagId } = req.body;
-        // Validar que se envíen los datos correctos
-        if (!tagId) {
-            return res.status(400).send("Faltan datos: tagID son obligatorios.");
-        }
-        //Validar si El tagID ya está registrado.
-        const existingTag = await db.collection("RFIDTag")
-            .where("tagId", "==", tagId)
-            .get();
-       // Guardar NUEVO RFID en Firestore
-        if (existingTag.empty) {
-            const newRFIDRef = await db.collection("RFIDTag").add({
-                userId: "nombre",
-                tagId: tagId,
-                new: true,
-                approved: false,
-            });
-    
-            await newRFIDRef.collection("Read").add({
-                createdAt: FieldValue.serverTimestamp()
-            });
-            return res.status(403).send("Empaquetado y enviado");
-        }
-        //Guardar Registro en READ
-        const readData = existingTag.docs[0].data().approved;
-        existingTag.docs[0].ref.collection("Read").add({
-            createdAt: FieldValue.serverTimestamp()
+            // Manejo de solicitudes POST para registrar nuevos tags RFID
+            if (req.method !== "POST") {
+                res.status(405).send("Método no permitido");
+                return;
+            }
+            try {
+                // Validación de entrada usando middleware
+                await validateInput(req, res, async () => {
+                    const { tagId } = req.body;
+                    const existingTag = await db.collection("RFIDTag").where("tagId", "==", tagId).get();
+                    if (existingTag.empty) {
+                        await db.collection("RFIDTag").add({ tagId, approved: false });
+                        res.status(201).send("Tag registrado correctamente.");
+                    } else {
+                        res.status(403).send("El tag ya existe.");
+                    }
+                });
+            } catch (error) {
+                console.error("Error registrando empleado:", error);
+                res.status(500).send("Error interno del servidor.");
+            }
         });
-        if(readData){
-            return res.status(200).send("El tagID ya está registrado y aprobado.");
-        }
-        //No Guardar Registro en READ
-        return res.status(403).send("Ya existia sin aprobar");
-    } catch (error) {
-        console.error("Error registrando empleado:", error);
-        return res.status(500).send("Error interno del servidor.");
-    }
+    });
 });
 
-export const tags = functions.https.onRequest(async (req, res):Promise<any> => {
-    //METODO GET
-    //Devolvera en json datos de las RFID: 
-    // //id de dcoumento, Id de usuario, approved, new, tagID
-    if (req.method === "GET") {
-        //return res.status(405).send("Método no permitido");
-        let tags = [];
-        try {
-            const snapshot = await db.collection("RFIDTag").get();
-            for (const doc of snapshot.docs) {
-                tags.push({
-                    id: doc.id,
-                    userId: doc.data().userId,
-                    approved: doc.data().approved,
-                    new: doc.data().new,
-                    tagId: doc.data().tagId
-                });
+// Endpoint para manejar operaciones relacionadas con la gestión de tags RFID
+export const tags = functions.https.onRequest(async (req, res): Promise<any> => {
+    // Middleware para autenticar al usuario
+    await authMiddleware(req, res, async () => {
+        // Middleware para verificar si el usuario tiene rol de administrador
+        await checkAdminRole(req, res, async () => {
+            // Manejo de solicitudes GET para obtener todos los tags RFID
+            if (req.method === "GET") {
+                try {
+                    const snapshot = await db.collection("RFIDTag").get();
+                    res.status(200).json(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                } catch (error) {
+                    console.error("Error obteniendo datos:", error);
+                    res.status(500).send("Error interno del servidor.");
+                }
+                return;
             }
-            return res.status(200).json(tags);
-        } catch (error) {
-            console.error("Error obteniendo lecturas:", error);
-            return res.status(500).json({ error: "Error interno del servidor" });
-        }
-    }
-    //METODO PUT
-    //Para cambar approve a TRUE
-    //Se necesita la forma ".../tagas/:id/approve"
-    if (req.method !== "PUT") {
-        return res.status(405).send("Método no permitido");
-    }
-    const match = req.path.match(/^\/([^/]+)\/approve$/);
-    if (!match) {
-        return res.status(400).json({ error: "URL no válida. Formato esperado: /approveRFIDTag/:id/approve" });
-    }
-    const id = match[1];
-    try {
-        const tagRef = db.collection("RFIDTag").doc(id);
-        const tagDoc = await tagRef.get();
-
-        if (!tagDoc.exists) {
-             res.status(404).json({ error: "El documento RFIDTag no existe." });
-        }
-
-        await tagRef.update({ approved: true });
-        return res.status(200).json({ message: "RFIDTag aprobado exitosamente." });
-    } catch (error) {
-        console.error("Error obteniendo lecturas:", error);
-        return res.status(500).json({ error: "Error interno del servidor" });
-    }
+            // Manejo de solicitudes PUT para aprobar un tag RFID
+            if (req.method !== "PUT") {
+                res.status(405).send("Método no permitido");
+                return;
+            }
+            const match = req.path.match(/^\/([^/]+)\/approve$/);
+            if (!match) {
+                res.status(400).send("Solicitud inválida");
+                return;
+            }
+            const id = match[1];
+            try {
+                const tagRef = db.collection("RFIDTag").doc(id);
+                const tagDoc = await tagRef.get();
+                if (!tagDoc.exists) {
+                    res.status(404).send("Tag no encontrado.");
+                    return;
+                }
+                await tagRef.update({ approved: true });
+                res.status(200).send("Tag aprobado correctamente.");
+            } catch (error) {
+                console.error("Error actualizando el estado del tag:", error);
+                res.status(500).send("Error interno del servidor.");
+            }
+        });
+    });
 });
 
 

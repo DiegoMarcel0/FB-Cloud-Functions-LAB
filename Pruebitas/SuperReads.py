@@ -1,4 +1,4 @@
-#Misma funcion que en reads, pero enviaremos 10 Id´s para su registro
+#Misma funcion que en regRFID, pero enviaremos 10 Id´s para su registro
 import requests as re
 
 url = "http://127.0.0.1:5001/rfid-backend-7d6b3/us-central1/reads"

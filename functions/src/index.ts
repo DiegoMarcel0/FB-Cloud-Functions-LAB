@@ -30,9 +30,9 @@ const db = admin.firestore();
 // Endpoint para manejar operaciones relacionadas con lecturas de RFID
 export const reads = functions.https.onRequest(async (req, res): Promise<any> => {
     // Middleware para autenticar al usuario
-    await authMiddleware(req, res, async () => {
+    await apiKeyMiddleware(req, res, async () => {
         // Middleware para verificar si el usuario tiene rol de administrador
-        await checkAdminRole(req, res, async () => {
+        //await checkAdminRole(req, res, async () => {
             // Manejo de solicitudes GET para obtener datos de RFID
             if (req.method === "GET") {
                 try {
@@ -65,7 +65,7 @@ export const reads = functions.https.onRequest(async (req, res): Promise<any> =>
                 console.error("Error registrando empleado:", error);
                 res.status(500).send("Error interno del servidor.");
             }
-        });
+        //});
     });
 });
 
@@ -114,11 +114,5 @@ export const tags = functions.https.onRequest(async (req, res): Promise<any> => 
     });
 });
 
-// Endpoint para registrar nuevos tags RFID con protección de apiKeyMiddleware
-export const registerRFID = functions.https.onRequest(async (req, res): Promise<any> => {
-    await apiKeyMiddleware(req, res, async () => {
-        res.json({ message: "Acceso autorizado. Datos procesados correctamente." });
-    });
-});
 
 

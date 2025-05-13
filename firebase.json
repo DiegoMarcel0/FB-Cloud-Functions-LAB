@@ -23,7 +23,15 @@
     "firestore": {
       "port": 8080
     },
-    "rules": "firestore.rules"
+    "rules": "firestore.rules",
+    "auth": {
+      "port": 9099
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
+    },
+    "singleProjectMode": true
   },
   "ui": {
     "enabled": true

@@ -1,8 +1,9 @@
 #Misma funcion que en regRFID, pero enviaremos 10 Id´s para su registro
 import requests as re
 
-url = "http://127.0.0.1:5001/rfid-backend-7d6b3/us-central1/reads"
-headers = {"Content-Type": "application/json"}
+url = "http://127.0.0.1:5001/rfid-backend-7d6b3/us-central1/api/reads"
+headers = {"Content-Type": "application/json",
+           "x-api-key": "my-secret-api-key-12345"}
 RFIDS =  [
 {
     "tagId": "26aea906-75d7-4d83-9e7a-0aa0894927d0"

@@ -11,6 +11,7 @@ import * as admin from "firebase-admin";
 import * as functions from "firebase-functions";
 import { authMiddleware } from "./Seguridad/authMiddleware";
 import { validateInput } from "./Seguridad/validateInput";
+import { apiKeyMiddleware } from "./Seguridad/apiKeyMiddleware";
 
 import { Request, Response, NextFunction } from "express";
 
@@ -110,6 +111,13 @@ export const tags = functions.https.onRequest(async (req, res): Promise<any> => 
                 res.status(500).send("Error interno del servidor.");
             }
         });
+    });
+});
+
+// Endpoint para registrar nuevos tags RFID con protección de apiKeyMiddleware
+export const registerRFID = functions.https.onRequest(async (req, res): Promise<any> => {
+    await apiKeyMiddleware(req, res, async () => {
+        res.json({ message: "Acceso autorizado. Datos procesados correctamente." });
     });
 });
 
